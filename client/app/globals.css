@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --text-rgb: 255, 255, 255;
+  --background-rgb: 17, 24, 39;
+}
+
+*{
+  margin: 0px;
+  scroll-behavior: smooth;
+}
+
+body {
+  color: rgb(var(--text-rgb));
+  background: rgb(var(--background-rgb));
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+}
