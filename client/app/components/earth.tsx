@@ -7,6 +7,7 @@ import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 const Earth: React.FC = () => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
+	const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
 
 	useEffect(() => {
 		if (canvasRef.current && containerRef.current){
@@ -18,11 +19,11 @@ const Earth: React.FC = () => {
 
 			// set camera
 			const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
-			camera.position.z = 4;
+			camera.position.z = 3;
 
 			// create renderer
 			const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, antialias: true });
-			renderer.setSize(width, height);
+			rendererRef.current = renderer;
 			renderer.setClearColor('rgb(2, 2, 2)');
 			
 			const earthGroup = new THREE.Group();
@@ -45,7 +46,7 @@ const Earth: React.FC = () => {
 			// lights
 			const ambientLight = new THREE.AmbientLight(0x4e5cd7, 1);
 			earthGroup.add(ambientLight);
-	
+
 			// create animation
 			const animate = () => {
 				requestAnimationFrame(animate);
@@ -55,14 +56,25 @@ const Earth: React.FC = () => {
 			};
 			animate();
 
+			// Resize canvas
+			const resizeCanvas = () => {
+				const width = container.clientWidth;
+				const height = container.clientHeight;
+				camera.aspect = width / height;
+				camera.updateProjectionMatrix();
+				renderer.setSize(width, height);
+			};
+			resizeCanvas(); // Initial resize
+			window.addEventListener('resize', resizeCanvas);
+
 			return () => {renderer.dispose();}; // Clean up on component unmount
 		}
 	}, []);
 
 	return (
 		// <div ref={containerRef} className="w-full h-full border-2 border-slate-700 rounded-md">
-		<div ref={containerRef} className="w-full h-full">
-      <canvas ref={canvasRef} className="w-full h-full rounded-md cursor-pointer"/>
+		<div ref={containerRef} className="w-full h-full border-2 border-zinc-600 rounded-md ">
+      <canvas ref={canvasRef} className="rounded-lg cursor-pointer"/>
     </div>
 	);
 }
