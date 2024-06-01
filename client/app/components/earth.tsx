@@ -52,6 +52,7 @@ const Earth: React.FC = () => {
 			// create animation
 			const animate = () => {
 				requestAnimationFrame(animate);
+				// uncomment for earth rotation
 				// lights.rotation.y += 0.001;
 				// grayscale.rotation.y += 0.001;
 				renderer.render(scene, camera);

@@ -6,44 +6,39 @@ const renderSatellites = (scene: THREE.Scene, filePath: string) => {
 	fetch(filePath)
 		.then(res => res.json())
 		.then(data => {
-			const sat_positions = Object.keys(data).map(norad_id => {
+			const instanceCount = Object.keys(data).length;
+			console.log("total satellites", instanceCount)
+			const geometry = new THREE.SphereGeometry(0.01, 32, 32);
+			const material = new THREE.MeshBasicMaterial({ color: 0x50C878 })
+
+			const instancedMesh = new THREE.InstancedMesh(geometry, material, instanceCount);
+      const dummy = new THREE.Object3D();
+
+			let count = 0;
+			Object.keys(data).forEach((norad_id, index) => {
 				const { tle } = data[norad_id];
 				const satrec = satellite.twoline2satrec(tle[0], tle[1]);
 				const positionAndVelocity: any = satellite.propagate(satrec, new Date());
 
-				// Check if positionAndVelocity is valid
-        if (positionAndVelocity && positionAndVelocity.position && positionAndVelocity.velocity) {
-          const positionGd = satellite.eciToGeodetic(positionAndVelocity.position, satellite.gstime(new Date()));
-          return {
-            norad_id,
-            longitude: satellite.degreesLong(positionGd.longitude),
-            latitude: satellite.degreesLat(positionGd.latitude),
-            altitude: positionGd.height
-          };
-        }
-        return null;
-			}).filter(pos => pos !== null);
+				if (positionAndVelocity && positionAndVelocity.position && positionAndVelocity.velocity) {
+					const positionGd = satellite.eciToGeodetic(positionAndVelocity.position, satellite.gstime(new Date()));
+					const phi = (90 - satellite.degreesLat(positionGd.latitude)) * (Math.PI / 180);
+					const theta = (satellite.degreesLong(positionGd.longitude) + 180) * (Math.PI / 180);
+					const radius = 1 + positionGd.height / 1000;
 
-			sat_positions.forEach(sat => {
-				if (sat) {
-					const satMesh = new THREE.Mesh(
-						new THREE.SphereGeometry(0.01, 32, 32),
-						new THREE.MeshBasicMaterial({ color: 0x50C878 })
-					);
-
-					const phi = (90 - sat.latitude) * (Math.PI / 180);
-					const theta = (sat.longitude + 180) * (Math.PI / 180);
-					const radius = 1 + sat.altitude / 1000;
-
-					satMesh.position.set(
+					dummy.position.set(
 						radius * Math.sin(phi) * Math.cos(theta),
 						radius * Math.cos(phi),
 						radius * Math.sin(phi) * Math.sin(theta)
 					);
+					dummy.updateMatrix();
+					instancedMesh.setMatrixAt(index, dummy.matrix);
 
-					scene.add(satMesh);
+					count += 1;
 				}
 			});
+			console.log("rendered satellites", count);
+      scene.add(instancedMesh);
 		})
 		.catch(error => {
 			console.error('Error: ', error);
