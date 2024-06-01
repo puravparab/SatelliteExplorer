@@ -26,6 +26,7 @@ const Earth: React.FC = () => {
 			// create renderer
 			const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, antialias: true });
 			rendererRef.current = renderer;
+			renderer.shadowMap.enabled = false;
 			renderer.setClearColor('rgb(2, 2, 2)');
 			
 			const earthGroup = new THREE.Group();
