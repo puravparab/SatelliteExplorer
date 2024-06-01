@@ -67,7 +67,7 @@ const Earth: React.FC = () => {
 			resizeCanvas(); // Initial resize
 			window.addEventListener('resize', resizeCanvas);
 
-			return () => {renderer.dispose();}; // Clean up on component unmount
+			return () => {if (rendererRef.current) {rendererRef.current.dispose();}}; // Clean up on component unmount
 		}
 	}, []);
 

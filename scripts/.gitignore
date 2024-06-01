@@ -1,0 +1,53 @@
+# Ignore Python compiled files
+*.pyc
+*.pyo
+__pycache__/
+
+# Ignore Python virtual environment
+venv/
+.venv/
+env/
+.env/
+
+# Ignore Poetry-specific files
+poetry.lock
+.poetry/
+.python-version
+
+# Ignore pytest cache
+.pytest_cache/
+
+# Ignore coverage reports
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+
+# Ignore JetBrains IDE-specific files
+.idea/
+*.iml
+
+# Ignore Visual Studio Code-specific files
+.vscode/
+
+# Ignore macOS-specific files
+.DS_Store
+
+# Ignore log files
+*.log
+
+# Ignore build and distribution files
+data/
+var/
+build/
+dist/
+*.egg-info/
+*.egg
+
+# Ignore any sensitive or environment-specific files
+.env
+.env.*
+secrets.py
+config.py
+
+# Ignore any other files or directories specific to your project
