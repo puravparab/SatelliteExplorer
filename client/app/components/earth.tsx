@@ -1,8 +1,10 @@
 "use client"
 
-import { useEffect, useRef} from 'react';
+import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+import renderSatellites from './satellites';
 
 const Earth: React.FC = () => {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -19,7 +21,7 @@ const Earth: React.FC = () => {
 
 			// set camera
 			const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
-			camera.position.z = 3;
+			camera.position.z = 6;
 
 			// create renderer
 			const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, antialias: true });
@@ -50,8 +52,8 @@ const Earth: React.FC = () => {
 			// create animation
 			const animate = () => {
 				requestAnimationFrame(animate);
-				lights.rotation.y += 0.001;
-				grayscale.rotation.y += 0.001;
+				// lights.rotation.y += 0.001;
+				// grayscale.rotation.y += 0.001;
 				renderer.render(scene, camera);
 			};
 			animate();
@@ -67,12 +69,14 @@ const Earth: React.FC = () => {
 			resizeCanvas(); // Initial resize
 			window.addEventListener('resize', resizeCanvas);
 
+			// render satellites
+      renderSatellites(scene, '/data/tle.json');
+
 			return () => {if (rendererRef.current) {rendererRef.current.dispose();}}; // Clean up on component unmount
 		}
 	}, []);
 
 	return (
-		// <div ref={containerRef} className="w-full h-full border-2 border-slate-700 rounded-md">
 		<div ref={containerRef} className="w-full h-full border-2 border-zinc-600 rounded-md ">
       <canvas ref={canvasRef} className="rounded-lg cursor-pointer"/>
     </div>
