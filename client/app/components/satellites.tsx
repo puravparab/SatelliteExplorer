@@ -4,46 +4,63 @@ import * as satellite from 'satellite.js';
 
 const EARTH_RADIUS = 6378 // Kilometers
 
+const calculateSatPosition = (satrec: satellite.SatRec) => {
+	const positionAndVelocity: any = satellite.propagate(satrec, new Date());
+	if (positionAndVelocity && positionAndVelocity.position && positionAndVelocity.velocity) {
+		const positionGd = satellite.eciToGeodetic(positionAndVelocity.position, satellite.gstime(new Date()));
+		const phi = (90 - satellite.degreesLat(positionGd.latitude)) * (Math.PI / 180);
+		const theta = (satellite.degreesLong(positionGd.longitude) + 180) * (Math.PI / 180);
+		const radius = 1 + positionGd.height / EARTH_RADIUS;
+
+		return new THREE.Vector3 (
+			radius * Math.sin(phi) * Math.cos(theta),
+			radius * Math.cos(phi),
+			radius * Math.sin(phi) * Math.sin(theta)
+		);
+	}
+	return null;
+}
+
 const renderSatellites = async (scene: THREE.Scene, filePath: string) => {
 	try {
 		// read from tle.json
 		const res = await fetch(filePath);
-		const data = await res.json();
+		const data: {[key: string]: { tle: string[] }} = await res.json();
 		
 		const instanceCount = Object.keys(data).length;
 		console.log("total satellites", instanceCount)
-		const geometry = new THREE.SphereGeometry(0.007, 8, 8);
-		const material = new THREE.MeshBasicMaterial({ color: 0x50C878 })
 
+		const geometry = new THREE.SphereGeometry(0.006, 12, 12);
+		const material = new THREE.MeshBasicMaterial({ color: 0x50C878 })
 		const instancedMesh = new THREE.InstancedMesh(geometry, material, instanceCount);
 		const dummy = new THREE.Object3D();
 
+		const satelliteData: Satellite[] = []
+		
 		let count = 0;
 		Object.keys(data).forEach((norad_id, index) => {
 			const { tle } = data[norad_id];
 			const satrec = satellite.twoline2satrec(tle[0], tle[1]);
-			const positionAndVelocity: any = satellite.propagate(satrec, new Date());
-
-			if (positionAndVelocity && positionAndVelocity.position && positionAndVelocity.velocity) {
-				const positionGd = satellite.eciToGeodetic(positionAndVelocity.position, satellite.gstime(new Date()));
-				const phi = (90 - satellite.degreesLat(positionGd.latitude)) * (Math.PI / 180);
-				const theta = (satellite.degreesLong(positionGd.longitude) + 180) * (Math.PI / 180);
-				const radius = 1 + positionGd.height / EARTH_RADIUS;
-
-				dummy.position.set(
-					radius * Math.sin(phi) * Math.cos(theta),
-					radius * Math.cos(phi),
-					radius * Math.sin(phi) * Math.sin(theta)
-				);
-				dummy.updateMatrix();
-				instancedMesh.setMatrixAt(index, dummy.matrix);
-
-				count += 1;
-			}
+			satelliteData.push({ norad_id: parseInt(norad_id), tle, satrec});
 		});
-		console.log("rendered satellites", count);
+
 		scene.add(instancedMesh);
-	} 
+
+		const animate = () => {
+			requestAnimationFrame(animate);
+			satelliteData.forEach((sat, index) => {
+				const { satrec } = sat;
+				const pos = calculateSatPosition(satrec);
+				if (pos) {
+					dummy.position.copy(pos);
+					dummy.updateMatrix();
+					instancedMesh.setMatrixAt(index, dummy.matrix);
+				}
+			});
+			instancedMesh.instanceMatrix.needsUpdate = true;
+		};
+		animate();
+	}
 	catch (error){
 		console.error('Error: ', error);
 	}
