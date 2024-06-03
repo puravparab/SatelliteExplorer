@@ -10,13 +10,13 @@ const calculateSatPosition = (satrec: satellite.SatRec, date: Date) => {
 	if (positionAndVelocity && positionAndVelocity.position && positionAndVelocity.velocity) {
 		const positionGd = satellite.eciToGeodetic(positionAndVelocity.position, satellite.gstime(new Date()));
 		const phi = (90 - satellite.degreesLat(positionGd.latitude)) * (Math.PI / 180);
-		const theta = (satellite.degreesLong(positionGd.longitude) + 180) * (Math.PI / 180);
+		const theta = (satellite.degreesLong(positionGd.longitude)) * (Math.PI / 180);
 		const radius = 1 + positionGd.height / EARTH_RADIUS;
 
 		return new THREE.Vector3 (
 			radius * Math.sin(phi) * Math.cos(theta),
 			radius * Math.cos(phi),
-			radius * Math.sin(phi) * Math.sin(theta)
+			-radius * Math.sin(phi) * Math.sin(theta) // negating seems to display orbits correctly
 		);
 	}
 	return null;
@@ -50,7 +50,7 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.Camera, graysc
 		const instanceCount = Object.keys(data).length;
 		console.log("total satellites", instanceCount)
 
-		const geometry = new THREE.SphereGeometry(0.006, 12, 12);
+		const geometry = new THREE.SphereGeometry(0.006, 16, 16);
 		const material = new THREE.MeshBasicMaterial({ color: 0x50C878 })
 		const instancedMesh = new THREE.InstancedMesh(geometry, material, instanceCount);
 		const dummy = new THREE.Object3D();
@@ -118,7 +118,6 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.Camera, graysc
 						const earthIntersects = earthRaycaster.intersectObject(grayscale);
 						// The satellite is not occluded by the Earth, so render its orbit
 						if (earthIntersects.length === 0) {
-							clearOrbit();
 							renderOrbit(sat.satrec);
 							console.log("norad id", sat.norad_id);
 						}

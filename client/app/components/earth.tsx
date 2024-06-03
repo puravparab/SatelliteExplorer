@@ -52,6 +52,8 @@ const Earth: React.FC = () => {
 			const grayscale = new THREE.Mesh(geometry, grayscale_material);
 			earthGroup.add(grayscale);
 			
+			earthGroup.rotation.y = Math.PI; // Rotate earth by 180 degress (pi radians)
+			
 			/*
 				LIGHTS
 			*/
@@ -82,7 +84,6 @@ const Earth: React.FC = () => {
 			};
 			resizeCanvas(); // Initial resize
 			window.addEventListener('resize', resizeCanvas);
-
 
 			/*
 				SATELLITES
