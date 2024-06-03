@@ -13,6 +13,9 @@ const Earth: React.FC = () => {
 
 	useEffect(() => {
 		if (canvasRef.current && containerRef.current){
+			/*
+				SCENE AND CANVAS
+			*/
 			const container = containerRef.current;
 			const width = container.clientWidth;
       const height = container.clientHeight;
@@ -29,38 +32,47 @@ const Earth: React.FC = () => {
 			renderer.shadowMap.enabled = false;
 			renderer.setClearColor('rgb(2, 2, 2)');
 			
+			/*
+				EARTH MESHES
+			*/
 			const earthGroup = new THREE.Group();
 			scene.add(earthGroup);
 			new OrbitControls(camera, renderer.domElement);
-			
-			// add mesh and materials
-			// lights
+
+			// texture with lights
 			const geometry = new THREE.IcosahedronGeometry(1, 12);
       const lights_texture = new THREE.TextureLoader().load('./assets/textures/earth_lights.jpg');
       const lights_material = new THREE.MeshBasicMaterial({ map: lights_texture });
 			const lights = new THREE.Mesh(geometry, lights_material);
 			earthGroup.add(lights);
-			// grayscale
+
+			// grayscale texture
       const grayscale_texture = new THREE.TextureLoader().load('./assets/textures/earth_grayscale.jpg');
-      const grayscale_material = new THREE.MeshStandardMaterial({ map: grayscale_texture, blending: THREE.AdditiveBlending});
+      const grayscale_material = new THREE.MeshStandardMaterial({ map: grayscale_texture, blending: THREE.AdditiveBlending, opacity: 0.8});
 			const grayscale = new THREE.Mesh(geometry, grayscale_material);
 			earthGroup.add(grayscale);
 			
-			// lights
+			/*
+				LIGHTS
+			*/
 			const ambientLight = new THREE.AmbientLight(0x4e5cd7, 1);
 			earthGroup.add(ambientLight);
 
-			// create animation
+			/*
+				ANIMATION LOOP
+			*/
 			const animate = () => {
 				requestAnimationFrame(animate);
-				// uncomment for earth rotation
+				// uncomment if you want the earth to rotate
 				// lights.rotation.y += 0.001;
 				// grayscale.rotation.y += 0.001;
 				renderer.render(scene, camera);
 			};
 			animate();
 
-			// Resize canvas
+			/*
+				CANVAS RESIZE
+			*/
 			const resizeCanvas = () => {
 				const width = container.clientWidth;
 				const height = container.clientHeight;
@@ -71,8 +83,11 @@ const Earth: React.FC = () => {
 			resizeCanvas(); // Initial resize
 			window.addEventListener('resize', resizeCanvas);
 
-			// render satellites
-      renderSatellites(scene, '/data/tle.json');
+
+			/*
+				SATELLITES
+			*/
+      renderSatellites(scene, camera, grayscale, '/data/tle.json');
 
 			return () => {if (rendererRef.current) {rendererRef.current.dispose();}}; // Clean up on component unmount
 		}
