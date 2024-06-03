@@ -51,19 +51,6 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.Camera, graysc
 		const res = await fetch(filePath);
 		const data: {[key: string]: { tle: string[] }} = await res.json();
 		
-		const instanceCount = Object.keys(data).length;
-		console.log("total satellites", instanceCount)
-
-		const geometry = new THREE.TetrahedronGeometry(0.01);
-		const material = new THREE.MeshBasicMaterial({ color: 0xbbf2a4 })
-		const instancedMesh = new THREE.InstancedMesh(geometry, material, instanceCount);
-		const dummy = new THREE.Object3D();
-
-		// Create an InstancedBufferAttribute for the radii
-		const radii = new THREE.InstancedBufferAttribute(new Float32Array(instanceCount), 1);
-		instancedMesh.instanceMatrix.needsUpdate = true;
-		instancedMesh.geometry.setAttribute('radius', radii);
-		
 		const satelliteData: Satellite[] = []
 		let count = 0;
 		Object.keys(data).forEach((norad_id, index) => {
@@ -72,6 +59,18 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.Camera, graysc
 			satelliteData.push({ norad_id: parseInt(norad_id), tle, satrec});
 		});
 
+		console.log("total satellites", satelliteData.length)
+
+		const geometry = new THREE.SphereGeometry(0.01, 16, 16);
+		const material = new THREE.MeshBasicMaterial({ color: 0xbbf2a4 })
+		const instancedMesh = new THREE.InstancedMesh(geometry, material, satelliteData.length);
+		const dummy = new THREE.Object3D();
+
+		// Create an InstancedBufferAttribute for the radii
+		const radii = new THREE.InstancedBufferAttribute(new Float32Array(satelliteData.length), 0.01);
+		instancedMesh.instanceMatrix.needsUpdate = true;
+		instancedMesh.geometry.setAttribute('radius', radii);
+		
 		scene.add(instancedMesh);
 
 		/*
@@ -110,10 +109,14 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.Camera, graysc
 
 		// If user hovers on a satellite
 		const handleMouseHover = (event: MouseEvent) => {
-      const raycaster = new THREE.Raycaster();
+			// get mouse location
       const mouse = new THREE.Vector2();
       mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
       mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+			const raycaster = new THREE.Raycaster();
+			raycaster.near = 0.1; // Start detecting collisions closer to the camera
+			raycaster.far = 20; // Detect collisions at a greater distance
       raycaster.setFromCamera(mouse, camera);
       const intersects = raycaster.intersectObject(instancedMesh);
       if (intersects.length > 0) {
@@ -149,7 +152,7 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.Camera, graysc
 				if (satData) {
 					const { position, radius } = satData;
 					dummy.position.copy(position);
-					dummy.scale.setScalar(0.5 * radius); // Scale the dummy object based on the radius
+					dummy.scale.setScalar(0.3 * radius); // Scale the dummy object based on the radius
 					dummy.updateMatrix();
 					instancedMesh.setMatrixAt(index, dummy.matrix);
 					radii.setX(index, radius); // Update the radius value for the instance

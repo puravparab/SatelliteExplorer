@@ -24,7 +24,7 @@ const Earth: React.FC = () => {
 
 			// set camera
 			const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
-			camera.position.z = 6;
+			camera.position.z = 4;
 
 			// create renderer
 			const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, antialias: true });
