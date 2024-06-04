@@ -90,7 +90,7 @@ const Earth: React.FC = () => {
 			/*
 				SATELLITES
 			*/
-      renderSatellites(scene, camera, grayscale, '/data/tle.json');
+      renderSatellites(scene, camera, renderer, grayscale, '/data/tle.json');
 
 			return () => {if (rendererRef.current) {rendererRef.current.dispose();}}; // Clean up on component unmount
 		}

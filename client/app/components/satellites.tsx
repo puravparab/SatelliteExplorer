@@ -3,6 +3,7 @@ import * as THREE from 'three';
 import * as satellite from 'satellite.js';
 
 const EARTH_RADIUS = 6378 // in Kilometers
+// let selected_sat; // norad id of selected sat
 
 // Calculate and return the satellite's current longitude, lattitude and altitude
 const calculateSatPosition = (satrec: satellite.SatRec, date: Date) => {
@@ -44,7 +45,7 @@ const calculateOrbitalPeriod = (satrec: satellite.SatRec) => {
 };
 
 // Render satellites in the scene
-const renderSatellites = async (scene: THREE.Scene, camera: THREE.Camera, grayscale: THREE.Mesh, filePath: string) => {
+const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer, grayscale: THREE.Mesh, filePath: string) => {
 	try {
 		// TEMPORARY
 		// read from tle.json
@@ -100,7 +101,7 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.Camera, graysc
 			}
 		};
 		// Remove orbit
-		const clearOrbit = () => {
+		const clearOrbit = (norad_id: number) => {
 			if (orbitLine){
 				scene.remove(orbitLine);
 				orbitLine = null;
@@ -109,18 +110,20 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.Camera, graysc
 
 		// If user hovers on a satellite
 		const handleMouseHover = (event: MouseEvent) => {
-			// get mouse location
-      const mouse = new THREE.Vector2();
-      mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-      mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+			// clearOrbit(10000);
+			// get pointer/mouse location
+      const pointer = new THREE.Vector2();
+      pointer.x = (event.offsetX / renderer.domElement.clientWidth) * 2 - 1;
+  		pointer.y = -(event.offsetY / renderer.domElement.clientHeight) * 2 + 1;
 
 			const raycaster = new THREE.Raycaster();
-			raycaster.near = 0.1; // Start detecting collisions closer to the camera
-			raycaster.far = 20; // Detect collisions at a greater distance
-      raycaster.setFromCamera(mouse, camera);
+			raycaster.near = camera.near; // min distance detecting sats
+			raycaster.far = camera.far; // max distance detecting sats
+      raycaster.setFromCamera(pointer, camera);
       const intersects = raycaster.intersectObject(instancedMesh);
+			
       if (intersects.length > 0) {
-        const instanceId = intersects[0].instanceId;
+        const instanceId = intersects[0].instanceId; // get the first sat that the cursor hovers
         if (instanceId !== undefined) {
           const sat = satelliteData[instanceId];
 					const satData = calculateSatPosition(sat.satrec, new Date);
@@ -130,6 +133,7 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.Camera, graysc
 						const earthRaycaster = new THREE.Raycaster();
 						earthRaycaster.set(position, camera.position.clone().sub(position).normalize());
 						const earthIntersects = earthRaycaster.intersectObject(grayscale);
+
 						// The satellite is not occluded by the Earth, so render its orbit
 						if (earthIntersects.length === 0) {
 							renderOrbit(sat.satrec);
@@ -139,7 +143,7 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.Camera, graysc
         }
       }
     };
-		window.addEventListener('mousemove', handleMouseHover);
+		window.addEventListener('pointermove', handleMouseHover);
 
 		/*
 			ANIMATION LOOP
