@@ -24,7 +24,8 @@ const Earth: React.FC = () => {
 
 			// set camera
 			const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 1000);
-			camera.position.z = 4;
+			camera.position.z = 5;
+			camera.position.y = 1;
 
 			// create renderer
 			const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, antialias: true });
@@ -57,7 +58,8 @@ const Earth: React.FC = () => {
 			/*
 				LIGHTS
 			*/
-			const ambientLight = new THREE.AmbientLight(0x4e5cd7, 1);
+			// const ambientLight = new THREE.AmbientLight(0x4e5cd7, 1);
+			const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
 			earthGroup.add(ambientLight);
 
 			/*
@@ -95,7 +97,7 @@ const Earth: React.FC = () => {
 	}, []);
 
 	return (
-		<div ref={containerRef} className="w-full h-full border-2 border-zinc-600 rounded-md ">
+		<div ref={containerRef} className="w-full h-full border border-gray-500">
       <canvas ref={canvasRef} className="rounded-lg cursor-pointer"/>
     </div>
 	);
