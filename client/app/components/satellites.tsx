@@ -1,6 +1,11 @@
+import { createRoot, Root } from 'react-dom/client';
 import { Satellite } from '../utilities/interfaces';
+import { TooltipData } from '../utilities/interfaces';
+
 import * as THREE from 'three';
 import * as satellite from 'satellite.js';
+
+import { ToolTip } from './tooltip';
 
 const EARTH_RADIUS = 6378 // in Kilometers
 
@@ -79,7 +84,7 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCam
 		let hoveredOrbitLine: THREE.Line | null = null;
 		let clickOrbitLine: THREE.Line | null = null;
 
-		const renderOrbit = (satrec: satellite.SatRec, hover: boolean) => {
+		const renderOrbit = (satrec: satellite.SatRec, orbital_period: number, hover: boolean) => {
 			const orbitPositions: THREE.Vector3[] = [];
 			const date = new Date();
 			const orbitalPeriod = calculateOrbitalPeriod(satrec); // in seconds
@@ -118,14 +123,20 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCam
 			}
 		};
 
+
+		/* 
+			USER ACTIONS: HOVER AND CLICK
+		*/
 		// set raycaster
 		const raycaster = new THREE.Raycaster();
 		raycaster.near = camera.near; // min distance detecting sats
 		raycaster.far = camera.far; // max distance detecting sats
-
+		
 		// If user hovers on a satellite
 		const handleSatHover = (event: MouseEvent) => {
 			clearOrbit(true);
+			showHoverToolTip(null);
+
 			// get pointer/mouse location
       const pointer = new THREE.Vector2();
       pointer.x = (event.offsetX / renderer.domElement.clientWidth) * 2 - 1;
@@ -147,8 +158,18 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCam
 
 						// The satellite is not occluded by the Earth, so render its orbit
 						if (earthIntersects.length === 0) {
-							renderOrbit(sat.satrec, true);
 							console.log("norad id", sat.norad_id);
+							const orbital_period = calculateOrbitalPeriod(sat.satrec);
+							if (orbital_period){
+								const tooltipData: TooltipData = {
+									norad_id: sat.norad_id,
+									orbital_period: orbital_period / 60,
+									x: event.clientX,
+									y: event.clientY
+								};
+								showHoverToolTip(tooltipData);
+								renderOrbit(sat.satrec, orbital_period, true);
+							}
 						}
 					}
         }
@@ -180,14 +201,31 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCam
 						// The satellite is not occluded by the Earth, so render its orbit
 						if (earthIntersects.length === 0) {
 							clearOrbit(false);
-							renderOrbit(sat.satrec, false);
-							console.log("norad id", sat.norad_id);
+							const orbital_period = calculateOrbitalPeriod(sat.satrec);
+							if (orbital_period){
+								renderOrbit(sat.satrec, orbital_period, false);
+								console.log("norad id", sat.norad_id);
+							}
 						}
 					}
         }
       }
     };
 		window.addEventListener('click', handleSatClick);
+
+		/*
+			TOOLTIP
+		*/
+		// shows up when user hovers on a satellite
+		let HoverTooltipRoot: Root | null = null;
+		const showHoverToolTip = (tooltipData: TooltipData | null) => {
+			if (!HoverTooltipRoot){
+				const container = document.createElement('div');
+				document.body.appendChild(container);
+				HoverTooltipRoot = createRoot(container);
+			}
+			HoverTooltipRoot.render(tooltipData? <ToolTip {...tooltipData} /> : null);
+		};
 
 		/*
 			ANIMATION LOOP
