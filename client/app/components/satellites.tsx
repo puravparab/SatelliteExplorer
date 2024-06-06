@@ -67,7 +67,7 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCam
 		console.log("total satellites", satelliteData.length)
 
 		const geometry = new THREE.SphereGeometry(0.01, 16, 16);
-		const material = new THREE.MeshBasicMaterial({ color: 0xbbf2a4 })
+		const material = new THREE.MeshBasicMaterial({ color: 0xbbf2a4 });
 		const instancedMesh = new THREE.InstancedMesh(geometry, material, satelliteData.length);
 		const dummy = new THREE.Object3D();
 
@@ -89,8 +89,9 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCam
 			const date = new Date();
 			const orbitalPeriod = calculateOrbitalPeriod(satrec); // in seconds
 			if (orbitalPeriod){
-				// get positions of the satellite at every interval i to render an orbit
-				for (let i = 0; i <= orbitalPeriod; i++) {
+				const minStep = 1;
+				const step = Math.max(Math.floor(orbitalPeriod / (180 * 60)), minStep);
+				for (let i = 0; i <= orbitalPeriod; i += step) {
 					const future = new Date(date.getTime() + (i * 1000)); // datetime requires time in milliseconds
 					const satData = calculateSatPosition(satrec, future);
 					if (satData) {
@@ -98,9 +99,10 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCam
 						orbitPositions.push(position);
       		}
 				}
+
 				if (orbitPositions.length > 0) {
 					const orbitGeometry = new THREE.BufferGeometry().setFromPoints(orbitPositions);
-					const orbitMaterial = new THREE.LineBasicMaterial({ color: 0xf9cb9c, linewidth: 4 });
+					const orbitMaterial = new THREE.LineBasicMaterial({ color: 0xf9cb9c });
 					if (hover){
 						hoveredOrbitLine = new THREE.Line(orbitGeometry, orbitMaterial);
 						scene.add(hoveredOrbitLine);
@@ -108,7 +110,6 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCam
 						clickOrbitLine = new THREE.Line(orbitGeometry, orbitMaterial);
 						scene.add(clickOrbitLine);
 					}
-					
 				}
 			}
 		};
@@ -265,7 +266,7 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCam
 
 		return () => {
       window.removeEventListener('pointermove', handleSatHover);
-			window.removeEventListener('click', handleSatHover);
+			window.removeEventListener('click', handleSatClick);
     };
 	}
 	catch (error){
