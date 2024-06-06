@@ -1,4 +1,5 @@
 import Earth from "./components/earth";
+import CurrentDate from "./components/date";
 
 export default function Home() {
   return (
@@ -8,7 +9,10 @@ export default function Home() {
           <Earth />
         </div>
         <div className="flex flex-col w-2/6 m-4">
-          <h1 className="mr-auto text-2xl ">Satellite Explorer</h1>
+          <div className="w-full pb-4">
+            <h1 className="mr-auto text-2xl">Satellite Explorer</h1>
+            <CurrentDate />
+          </div>
         </div>
       </div>
     </main>
