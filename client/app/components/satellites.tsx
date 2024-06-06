@@ -123,7 +123,6 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCam
 			}
 		};
 
-
 		/* 
 			USER ACTIONS: HOVER AND CLICK
 		*/
@@ -134,8 +133,8 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCam
 		
 		// If user hovers on a satellite
 		const handleSatHover = (event: MouseEvent) => {
-			clearOrbit(true);
-			showHoverToolTip(null);
+			clearOrbit(true); // clear previous tooltip
+			showHoverToolTip(HoverTooltipRoot, null); // clear previous orbit
 
 			// get pointer/mouse location
       const pointer = new THREE.Vector2();
@@ -167,7 +166,7 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCam
 									x: event.clientX,
 									y: event.clientY
 								};
-								showHoverToolTip(tooltipData);
+								showHoverToolTip(HoverTooltipRoot,  tooltipData);
 								renderOrbit(sat.satrec, orbital_period, true);
 							}
 						}
@@ -200,11 +199,20 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCam
 
 						// The satellite is not occluded by the Earth, so render its orbit
 						if (earthIntersects.length === 0) {
-							clearOrbit(false);
+							console.log("norad id", sat.norad_id);
 							const orbital_period = calculateOrbitalPeriod(sat.satrec);
 							if (orbital_period){
+								showHoverToolTip(MainTooltipRoot, null); // clear previous tooltip
+								clearOrbit(false); // clear previous orbit
+								const canvasRect = renderer.domElement.getBoundingClientRect();
+								const tooltipData: TooltipData = {
+									norad_id: sat.norad_id,
+									orbital_period: orbital_period / 60,
+									x: pointer.x + canvasRect.left,
+									y: pointer.y + canvasRect.top
+								};
 								renderOrbit(sat.satrec, orbital_period, false);
-								console.log("norad id", sat.norad_id);
+								showHoverToolTip(MainTooltipRoot, tooltipData);
 							}
 						}
 					}
@@ -217,15 +225,21 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCam
 			TOOLTIP
 		*/
 		// shows up when user hovers on a satellite
-		let HoverTooltipRoot: Root | null = null;
-		const showHoverToolTip = (tooltipData: TooltipData | null) => {
-			if (!HoverTooltipRoot){
+		let HoverTooltipRoot: { root: Root | null, setRoot: (root: Root | null) => void } = { root: null, setRoot: () => {} };
+		let MainTooltipRoot: { root: Root | null, setRoot: (root: Root | null) => void } = { root: null, setRoot: () => {} };
+		HoverTooltipRoot.setRoot = (root: Root | null) => {HoverTooltipRoot.root = root;};
+		MainTooltipRoot.setRoot = (root: Root | null) => {MainTooltipRoot.root = root;};
+		const showHoverToolTip = (tooltipRoot: {root: Root | null, setRoot: (root: Root | null) => void }, tooltipData: TooltipData | null) => {
+			const { root, setRoot } = tooltipRoot;
+			if (!root){
 				const container = document.createElement('div');
 				document.body.appendChild(container);
-				HoverTooltipRoot = createRoot(container);
+				setRoot(createRoot(container));
+			} else {
+				root?.render(tooltipData ? <ToolTip {...tooltipData} /> : null);
 			}
-			HoverTooltipRoot.render(tooltipData? <ToolTip {...tooltipData} /> : null);
 		};
+
 
 		/*
 			ANIMATION LOOP

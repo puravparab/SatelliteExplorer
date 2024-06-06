@@ -97,7 +97,7 @@ const Earth: React.FC = () => {
 	}, []);
 
 	return (
-		<div ref={containerRef} className="w-full h-full border border-gray-700">
+		<div ref={containerRef} className="w-full h-full border border-slate-800">
       <canvas ref={canvasRef} className="rounded-lg cursor-pointer"/>
     </div>
 	);
