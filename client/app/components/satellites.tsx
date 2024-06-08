@@ -1,53 +1,13 @@
-import { createRoot, Root } from 'react-dom/client';
-import { Satellite, TooltipData, SelectedSatelliteData } from '../utilities/interfaces';
-import { ToolTip } from './tooltip';
-
+import { Root } from 'react-dom/client';
 import * as THREE from 'three';
 import * as satellite from 'satellite.js';
 
-const EARTH_RADIUS = 6378 // in Kilometers
-
-// Calculate and return the satellite's current longitude, lattitude and altitude
-const calculateSatPosition = (satrec: satellite.SatRec, date: Date) => {
-	const positionAndVelocity: any = satellite.propagate(satrec, date);
-	if (positionAndVelocity && positionAndVelocity.position && positionAndVelocity.velocity) {
-		const positionGd = satellite.eciToGeodetic(positionAndVelocity.position, satellite.gstime(new Date()));
-		const phi = (90 - satellite.degreesLat(positionGd.latitude)) * (Math.PI / 180);
-		const theta = (satellite.degreesLong(positionGd.longitude)) * (Math.PI / 180);
-		const radius = 1 + positionGd.height / EARTH_RADIUS;
-
-		return {
-			position: 
-				new THREE.Vector3 (
-				radius * Math.sin(phi) * Math.cos(theta), // x
-				radius * Math.cos(phi), // y
-				-radius * Math.sin(phi) * Math.sin(theta) // z (negating seems to display orbits correctly)
-			),
-			radius
-		};
-	}
-	return null;
-}
-
-// Calculate the satellite's orbital period (seconds to complete one orbit)
-const calculateOrbitalPeriod = (satrec: satellite.SatRec) => {
-  const meanMotion = satrec.no; // Mean motion (radians per minute)
-  if (meanMotion > 0) {
-		/* Calculate number of orbits in a day
-			1440 = total minutes in a day
-			2 * PI = radians in a circle
-		*/
-    const orbitsPerDay = meanMotion * (1440 / (2 * Math.PI));
-		/* Return orbital period in seconds
-			86400 = number of seconds in a day
-		*/
-    return 86400 / orbitsPerDay;
-  }
-  return null;
-};
+import { Satellite, TooltipData, SelectedSatelliteData } from '../utilities/interfaces';
+import { showHoverToolTip } from './tooltip';
+import { calculateSatPosition, calculateOrbitalPeriod } from '../utilities/satellites';
 
 // Render satellites in the scene
-const renderSatellites = async (
+export const renderSatellites = async (
 	scene: THREE.Scene, 
 	camera: THREE.PerspectiveCamera, 
 	renderer: THREE.WebGLRenderer, 
@@ -61,15 +21,13 @@ const renderSatellites = async (
 		const res = await fetch(filePath);
 		const data: {[key: string]: { tle: string[] }} = await res.json();
 		
-		const satelliteData: Satellite[] = []
-		let count = 0;
-		Object.keys(data).forEach((norad_id, index) => {
-			const { tle } = data[norad_id];
-			const satrec = satellite.twoline2satrec(tle[0], tle[1]);
-			satelliteData.push({ norad_id: parseInt(norad_id), tle, satrec});
-		});
+		const satelliteData: Satellite[] = Object.keys(data).map((norad_id) => {
+      const { tle } = data[norad_id];
+      const satrec = satellite.twoline2satrec(tle[0], tle[1]);
+      return { norad_id: parseInt(norad_id), tle, satrec };
+    });
 
-		console.log("total satellites", satelliteData.length)
+		console.log("total satellites", satelliteData.length);
 
 		const geometry = new THREE.SphereGeometry(0.01, 16, 16);
 		const material = new THREE.MeshBasicMaterial({ color: 0xbbf2a4 });
@@ -241,21 +199,11 @@ const renderSatellites = async (
 		/*
 			TOOLTIP
 		*/
-		// shows up when user hovers on a satellite
+		// shows up when user hovers or clicks on a satellite
 		let HoverTooltipRoot: { root: Root | null, setRoot: (root: Root | null) => void } = { root: null, setRoot: () => {} };
 		let MainTooltipRoot: { root: Root | null, setRoot: (root: Root | null) => void } = { root: null, setRoot: () => {} };
 		HoverTooltipRoot.setRoot = (root: Root | null) => {HoverTooltipRoot.root = root;};
 		MainTooltipRoot.setRoot = (root: Root | null) => {MainTooltipRoot.root = root;};
-		const showHoverToolTip = (tooltipRoot: {root: Root | null, setRoot: (root: Root | null) => void }, tooltipData: TooltipData | null) => {
-			const { root, setRoot } = tooltipRoot;
-			if (!root){
-				const container = document.createElement('div');
-				document.body.appendChild(container);
-				setRoot(createRoot(container));
-			} else {
-				root?.render(tooltipData ? <ToolTip {...tooltipData} /> : null);
-			}
-		};
 
 
 		/*
@@ -289,5 +237,3 @@ const renderSatellites = async (
 		console.error('Error: ', error);
 	}
 }
-
-export default renderSatellites

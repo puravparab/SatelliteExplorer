@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
-import renderSatellites from './satellites';
+import { renderSatellites } from './satellites';
 import { SelectedSatelliteData } from '../utilities/interfaces';
 
 const Earth: React.FC<{

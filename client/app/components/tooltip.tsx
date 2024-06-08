@@ -1,3 +1,4 @@
+import { createRoot, Root } from 'react-dom/client';
 import { TooltipData, SelectedSatelliteData } from "../utilities/interfaces";
 
 export const ToolTip: React.FC<TooltipData> = ({
@@ -15,6 +16,17 @@ export const ToolTip: React.FC<TooltipData> = ({
 			<p>Orbital Period: {orbital_period.toFixed(2)} minutes</p>
 		</div>
 	)
+};
+
+export const showHoverToolTip = (tooltipRoot: {root: Root | null, setRoot: (root: Root | null) => void }, tooltipData: TooltipData | null) => {
+	const { root, setRoot } = tooltipRoot;
+	if (!root){
+		const container = document.createElement('div');
+		document.body.appendChild(container);
+		setRoot(createRoot(container));
+	} else {
+		root?.render(tooltipData ? <ToolTip {...tooltipData} /> : null);
+	}
 };
 
 export const SelectedSatellite: React.FC<SelectedSatelliteData> = ({
