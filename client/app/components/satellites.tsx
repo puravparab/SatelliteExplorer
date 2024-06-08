@@ -1,11 +1,9 @@
 import { createRoot, Root } from 'react-dom/client';
-import { Satellite } from '../utilities/interfaces';
-import { TooltipData } from '../utilities/interfaces';
+import { Satellite, TooltipData, SelectedSatelliteData } from '../utilities/interfaces';
+import { ToolTip } from './tooltip';
 
 import * as THREE from 'three';
 import * as satellite from 'satellite.js';
-
-import { ToolTip } from './tooltip';
 
 const EARTH_RADIUS = 6378 // in Kilometers
 
@@ -49,7 +47,14 @@ const calculateOrbitalPeriod = (satrec: satellite.SatRec) => {
 };
 
 // Render satellites in the scene
-const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCamera, renderer: THREE.WebGLRenderer, grayscale: THREE.Mesh, filePath: string) => {
+const renderSatellites = async (
+	scene: THREE.Scene, 
+	camera: THREE.PerspectiveCamera, 
+	renderer: THREE.WebGLRenderer, 
+	grayscale: THREE.Mesh, 
+	filePath: string, 
+	onSatelliteSelect: (satelliteData: SelectedSatelliteData) => void
+) => {
 	try {
 		// TEMPORARY
 		// read from tle.json
@@ -212,6 +217,17 @@ const renderSatellites = async (scene: THREE.Scene, camera: THREE.PerspectiveCam
 									x: pointer.x + canvasRect.left,
 									y: pointer.y + canvasRect.top
 								};
+
+								const selectedSatelliteData: SelectedSatelliteData = {
+									name: "temp",
+									norad_id: sat.norad_id,
+									launch_date: "temp",
+									orbital_period: `${(orbital_period / 60).toFixed(2)} minutes`,
+									status: "temp",
+									country: "temp",
+								};
+								onSatelliteSelect(selectedSatelliteData);
+		
 								renderOrbit(sat.satrec, orbital_period, false);
 								showHoverToolTip(MainTooltipRoot, tooltipData);
 							}

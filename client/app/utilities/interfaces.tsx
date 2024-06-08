@@ -12,4 +12,13 @@ export interface TooltipData {
 	// tooltip postition
 	x: number,
 	y: number
-}
+};
+
+export interface SelectedSatelliteData {
+	name: string,
+	norad_id: number,
+	launch_date: string,
+	orbital_period: string,
+	status: string,
+	country: string
+};

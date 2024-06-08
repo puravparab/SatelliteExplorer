@@ -5,8 +5,13 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
 import renderSatellites from './satellites';
+import { SelectedSatelliteData } from '../utilities/interfaces';
 
-const Earth: React.FC = () => {
+const Earth: React.FC<{
+	onSatelliteSelect: (satelliteData: SelectedSatelliteData) => void
+}>= ({
+	onSatelliteSelect
+}) => {
 	const containerRef = useRef<HTMLDivElement>(null);
 	const canvasRef = useRef<HTMLCanvasElement>(null);
 	const rendererRef = useRef<THREE.WebGLRenderer | null>(null);
@@ -90,9 +95,13 @@ const Earth: React.FC = () => {
 			/*
 				SATELLITES
 			*/
-      renderSatellites(scene, camera, renderer, grayscale, '/data/tle.json');
+      renderSatellites(scene, camera, renderer, grayscale, '/data/tle.json', onSatelliteSelect);
 
-			return () => {if (rendererRef.current) {rendererRef.current.dispose();}}; // Clean up on component unmount
+			return () => {
+				if (rendererRef.current) {
+					rendererRef.current.dispose();
+				}
+			}; // Clean up on component unmount
 		}
 	}, []);
 
