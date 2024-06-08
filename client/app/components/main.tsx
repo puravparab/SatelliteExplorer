@@ -22,40 +22,23 @@ const Main: React.FC<{
             key={sec}
             onClick={() => setSection(sec)}
             className={`px-3 py-2 cursor-pointer text-md ${
-              sec === section ? 'text-lime-200 bg-slate-900' : 'bg-slate-950 hover:bg-slate-900'
+              sec === section ? 'text-lime-200 bg-gray-900' : 'bg-gray-950 hover:bg-gray-900'
             }`}
           >
             {sec}
           </div>
         ))}
 			</div>
-
-			<div className="flex flex-col w-full bg-slate-900 text-md p-4 gap-2">
-				<h2 className='text-xl'>Satellite of the Day:</h2>
-				<div>
-					<p>Name: SPUTNIK 1</p>
-				</div>
-				<div>
-					<p>Norad ID: 2</p>
-				</div>
-				<div>
-					<p>Launch Date: 4th October 1957</p>
-				</div>
-				<div>
-					<p>Orbital Period: 938 minutes</p>
-				</div>
-				<div>
-					<p>Status: Decomissioned</p>
-				</div>
-				<div>
-					<p>Country: Soviet Union</p>
-				</div>
-			</div>
-
-			<div className="w-full">
-				{selectedSatellite && <SelectedSatellite {...selectedSatellite} />}
-			</div>
-		</div>
+			
+			{section === "Home" && 
+				<>
+					<div className="flex flex-col w-80 bg-gray-900 text-md p-4 gap-2">
+						<h2 className='text-xl'>Selected Satellite:</h2>
+						{selectedSatellite && <SelectedSatellite {...selectedSatellite} />}
+					</div>
+				</>
+			}
+			</div> 
 	);
 };
 

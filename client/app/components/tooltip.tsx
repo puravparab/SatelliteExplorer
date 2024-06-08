@@ -37,25 +37,34 @@ export const SelectedSatellite: React.FC<SelectedSatelliteData> = ({
 	status,
 	country
 }) => {
+	const item_style = "flex flex-row w-full gap-x-3 py-1 text-md";
+	const val_style = "text-gray-400";
+	const name_url = `https://www.google.com/search?q=${name}`;
 	return (
-		<div className="flex flex-row">
-			<div>
-				<p>Name: {name}</p>
+		<div className="flex flex-col bg-gray-900">
+			<div className={item_style}>
+				<p>Name:</p>
+				<a href={name_url} target="_blank"><p className={val_style}>{name}</p></a>
 			</div>
-			<div>
-				<p>Norad ID: {norad_id}</p>
+			<div className={item_style}>
+				<p>Norad ID:</p>
+				<p className={val_style}>{norad_id}</p>
 			</div>
-			<div>
-				<p>Launch Date: {launch_date}</p>
+			<div className={item_style}>
+				<p>Launch Date:</p>
+				<p className={val_style}>{launch_date}</p>
 			</div>
-			<div>
-				<p>Orbital Period: {orbital_period}</p>
+			<div className={item_style}>
+				<p>Orbital Period:</p>
+				<p className={val_style}>{orbital_period}</p>
 			</div>
-			<div>
-				<p>Status: {status}</p>
+			<div className={item_style}>
+				<p>Status:</p>
+				<p className={val_style}>{status}</p>
 			</div>
-			<div>
-				<p>Country: {country}</p>
+			<div className={item_style}>
+				<p>Country:</p>
+				<p className={val_style}>{country}</p>
 			</div>
 		</div>
 	);
